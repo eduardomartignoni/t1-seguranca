@@ -1,18 +1,9 @@
 """
-testes.py  -  ROTEIRO DE TESTES de cifrar.py e quebrar.py
+testes.py - cifra o livro com várias senhas, ataca sem a senha e confere se o
+texto recuperado é idêntico ao original (tudo em memória).
 
 Uso:
     python3 testes.py <DomCasmurro.txt>
-
-O roteiro higieniza o livro uma vez e, para cada senha de teste:
-    1. cifra com a senha;
-    2. ataca o texto cifrado SEM usar a senha;
-    3. confere se o texto recuperado é IDÊNTICO ao original higienizado
-       e mede o tempo do ataque.
-
-Também repete o teste com trechos curtos do livro, para mostrar até onde
-a estatística ainda funciona. Tudo é feito em memória: nenhum arquivo é
-gravado.
 """
 
 import sys
@@ -25,7 +16,7 @@ from quebrar import (TAMANHO_MAXIMO_PADRAO, calcular_tabela_ic, escolher_tamanho
 
 
 def atacar(texto_cifrado):
-    """As duas etapas do ataque (as mesmas de quebrar.py). Devolve (tamanho, senha, texto, segundos)."""
+    """As duas etapas de quebrar.py. Devolve (tamanho, senha, texto, segundos)."""
     inicio = time.perf_counter()
     tabela_ic = calcular_tabela_ic(texto_cifrado, TAMANHO_MAXIMO_PADRAO)   # Etapa 1
     tamanho = escolher_tamanho_senha(tabela_ic)

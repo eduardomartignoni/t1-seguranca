@@ -1,45 +1,19 @@
 """
-higienizacao.py  -  PASSO 1 DO ENUNCIADO: HIGIENIZAÇÃO DO TEXTO
-(módulo compartilhado por cifrar.py e quebrar.py)
+higienizacao.py - Passo 1: higienização do texto (usado por cifrar.py e quebrar.py).
 
-O enunciado exige que o texto seja "limpo" antes de qualquer coisa:
-    - converter tudo para minúsculas;
-    - remover acentos (á -> a, ç -> c, ã -> a, ...);
-    - remover pontuação, números, espaços e caracteres especiais;
-    - manter apenas as letras de a a z.
-
-Esse mesmo tratamento é aplicado:
-    - ao texto original (antes de cifrar);
-    - à senha digitada pelo usuário;
-    - ao arquivo cifrado (antes de atacar), o que deixa o ataque robusto a
-      quebras de linha ou qualquer "lixo" que exista no arquivo.
-
-Aqui também ficam as pequenas funções que os dois programas compartilham:
-a conversão letra <-> número (a cifra trabalha com números de 0 a 25) e a
-leitura/gravação de arquivos.
-
-Uso direto (opcional, apenas para conferência):
+Uso (opcional, para conferência):
     python3 higienizacao.py <arquivo.txt> [arquivo_de_saida.txt]
-
-    Grava o texto higienizado (padrão: texto_higienizado.txt). Serve para
-    comparar, byte a byte, o original higienizado com o texto que o ataque
-    recupera (ver README.md).
 """
 
 import os
 import sys
 import unicodedata
 
-# Alfabeto de 26 letras usado em todo o trabalho (posição 0 = 'a', 25 = 'z').
 ALFABETO = 'abcdefghijklmnopqrstuvwxyz'
 
 
-# ============================================================================
-# ARITMÉTICA DO ALFABETO: cada letra vira um número de 0 a 25 e vice-versa
-# ============================================================================
-
 def letra_para_numero(letra):
-    """'a' -> 0, 'b' -> 1, ..., 'z' -> 25   (ord('a') vale 97, ord('b') 98...)."""
+    """'a' -> 0, 'b' -> 1, ..., 'z' -> 25."""
     return ord(letra) - ord('a')
 
 
@@ -48,22 +22,8 @@ def numero_para_letra(numero):
     return ALFABETO[numero]
 
 
-# ============================================================================
-# LEITURA E GRAVAÇÃO DE ARQUIVOS
-# ============================================================================
-
 def ler_arquivo(caminho):
-    """
-    Lê o arquivo inteiro para a memória e devolve o conteúdo como texto.
-
-    Primeiro tenta UTF-8 ('utf-8-sig' também descarta o BOM, uma marca
-    invisível que alguns editores colocam no início do arquivo; o próprio
-    DomCasmurro.txt tem uma). Se o arquivo não for UTF-8 (arquivos antigos
-    em português costumam ser Latin-1), avisa e tenta Latin-1, que aceita
-    qualquer sequência de bytes. O aviso importa porque a queda vale para o
-    arquivo INTEIRO: um único byte inválido em um arquivo UTF-8 faria todos
-    os acentos serem lidos errado sem que ninguém percebesse.
-    """
+    """Lê o arquivo em UTF-8 (ignorando o BOM); se não for UTF-8, lê como Latin-1."""
     try:
         with open(caminho, encoding='utf-8-sig') as arquivo:
             return arquivo.read()
@@ -74,10 +34,6 @@ def ler_arquivo(caminho):
 
 
 def salvar_arquivo(caminho, texto):
-    """
-    Grava o texto no arquivo indicado (sobrescreve se já existir).
-    Se não der para gravar (pasta inexistente, sem permissão...), avisa e para.
-    """
     try:
         with open(caminho, 'w', encoding='utf-8') as arquivo:
             arquivo.write(texto)
@@ -86,32 +42,13 @@ def salvar_arquivo(caminho, texto):
         sys.exit(1)
 
 
-# ============================================================================
-# PASSO 1 - HIGIENIZAÇÃO
-# ============================================================================
-
 def higienizar_texto(texto):
     """
-    Devolve o texto contendo somente letras minúsculas de a a z.
+    Deixa só letras minúsculas de a a z. Ex.: "Olá, mundo! 123" -> "olamundo".
 
-    Como funciona:
-      1. unicodedata.normalize('NFD', ...) "desmonta" cada letra acentuada
-         em duas partes: a letra base + o sinal de acento.
-         Exemplo:  'ç' vira 'c' + '¸'   e   'ã' vira 'a' + '~'.
-         (NFD = decomposição canônica. A variante NFKD também transformaria
-         símbolos em letras, como '™' -> 'tm' e 'ª' -> 'a', e o enunciado
-         manda REMOVER símbolos, não convertê-los em letras.)
-      2. .lower() passa tudo para minúsculas (inclusive 'É' -> 'é' -> 'e').
-      3. O laço final guarda apenas os caracteres entre 'a' e 'z'. Com isso
-         somem, de uma vez só: os sinais de acento separados no passo 1,
-         espaços, quebras de linha, pontuação, números e símbolos.
-
-    Exemplo: "Olá, mundo! 123" -> "olamundo"
-
-    Observação de desempenho: as letras são acumuladas em uma lista e unidas
-    no final com ''.join(). Concatenar strings dentro do laço ("texto += c")
-    seria muito lento em arquivos grandes, porque cada soma copia o texto
-    inteiro de novo.
+    NFD separa a letra do acento ('ç' -> 'c' + '¸'); depois de lower(), só os
+    caracteres entre 'a' e 'z' são mantidos, o que descarta acentos, espaços,
+    pontuação, números e símbolos.
     """
     texto = unicodedata.normalize('NFD', texto)
     texto = texto.lower()
@@ -122,10 +59,6 @@ def higienizar_texto(texto):
             letras.append(caractere)
     return ''.join(letras)
 
-
-# ============================================================================
-# PROGRAMA PRINCIPAL (opcional: só higieniza um arquivo, para conferência)
-# ============================================================================
 
 def main():
     if len(sys.argv) < 2:

@@ -1,16 +1,11 @@
 """
-cifrar.py  -  PARTE 1 DO ENUNCIADO: CRIPTOGRAFIA COM A CIFRA DE VIGENÈRE
+cifrar.py - Parte 1: criptografia com a Cifra de Vigenère.
 
 Uso:
     python3 cifrar.py <arquivo_original.txt> [senha] [arquivo_de_saida.txt]
 
-    - Se a senha não for passada na linha de comando, ela é pedida no teclado.
-    - O arquivo de saída padrão é texto_criptografado.txt.
-
-Fluxo (na mesma ordem do enunciado):
-    Passo 1 - Higienização do texto ......... higienizar_texto (higienizacao.py)
-    Passo 2 - Criptografia (Vigenère) ....... cifrar_vigenere (abaixo)
-    Saída   - Salvar o texto cifrado ........ texto_criptografado.txt
+Sem a senha na linha de comando, ela é pedida no teclado.
+Saída padrão: texto_criptografado.txt
 """
 
 import os
@@ -20,16 +15,8 @@ from higienizacao import (ler_arquivo, salvar_arquivo, higienizar_texto,
                           letra_para_numero, numero_para_letra)
 
 
-# ============================================================================
-# ENTRADA: a senha (chave) fornecida pelo usuário
-# ============================================================================
-
 def higienizar_senha(senha):
-    """
-    A senha passa pela MESMA higienização do texto: "Segrêdo 123" vira
-    "segredo". Assim a senha só tem letras de a a z, que é o que a cifra usa.
-    Se depois da limpeza não sobrar nenhuma letra, o programa avisa e para.
-    """
+    """A senha passa pela mesma higienização do texto: "Segrêdo 123" -> "segredo"."""
     senha_limpa = higienizar_texto(senha)
     if senha_limpa == '':
         print(f'Erro: a senha "{senha}" não tem nenhuma letra de a a z.')
@@ -37,35 +24,12 @@ def higienizar_senha(senha):
     return senha_limpa
 
 
-# ============================================================================
-# PASSO 2 - CRIPTOGRAFIA (CIFRA DE VIGENÈRE)
-# ============================================================================
-
 def cifrar_vigenere(texto, senha):
     """
-    Cifra de Vigenère = uma Cifra de César diferente para cada posição.
+    cifrado[i] = (texto[i] + senha[i mod tamanho_da_senha]) mod 26
 
-    As letras viram números (a=0, b=1, ..., z=25). A senha é repetida
-    ciclicamente ao longo do texto, e cada letra do texto é SOMADA (módulo 26)
-    à letra da senha que ficou embaixo dela:
-
-        cifrado[i] = ( texto[i] + senha[i mod tamanho_da_senha] ) mod 26
-
-    O "i mod tamanho_da_senha" é o que faz a senha se repetir: quando i chega
-    ao fim da senha, o resto da divisão volta a zero.
-
-    Exemplo com a senha "segredo":
-        texto :   a     t     a     q        u     e
-        senha :   s     e     g     r        e     d
-        soma  :  0+18  19+4   0+6  16+17    20+4   4+3
-              =   18    23     6   33%26=7   24     7
-        cifra :   s     x     g     h        y     h
-
-    Mini-exemplo do "dar a volta": 'x' + 'e' = 23 + 4 = 27 -> 27 % 26 = 1 -> 'b'.
-
-    Repare que a mesma letra do texto ('a' aparece duas vezes acima) virou
-    letras diferentes ('s' e 'g'). É isso que torna a Vigenère mais forte
-    que a César: as frequências das letras ficam "misturadas".
+    As letras viram números (a=0, ..., z=25) e a senha se repete ciclicamente.
+    Ex.: "ataque" com a senha "segredo" -> "sxghyh".
     """
     tamanho_senha = len(senha)
     resultado = []
@@ -78,10 +42,6 @@ def cifrar_vigenere(texto, senha):
 
     return ''.join(resultado)
 
-
-# ============================================================================
-# PROGRAMA PRINCIPAL
-# ============================================================================
 
 def main():
     if len(sys.argv) < 2:
@@ -101,7 +61,7 @@ def main():
     else:
         try:
             senha_digitada = input('Digite a senha: ')
-        except EOFError:   # entrada fechada (Ctrl-D, ou stdin vazio/redirecionado)
+        except EOFError:
             print()
             print('Erro: nenhuma senha foi informada.')
             sys.exit(1)
@@ -120,8 +80,6 @@ def main():
 
     # Passo 2 - Criptografia
     texto_cifrado = cifrar_vigenere(texto_limpo, senha)
-
-    # Saída
     salvar_arquivo(caminho_saida, texto_cifrado)
 
     print(f'Arquivo lido ............: {caminho_entrada} ({len(texto_original)} caracteres)')
